@@ -1,0 +1,72 @@
+containers_vs_VM:
+  overview:
+    - "Containers aren’t Mini-VM’s"
+    - "They are just processes"
+    - "Limited to what resources they can access (file paths, network devices, running processes)"
+    - "Exit when process stops"
+  commands:
+    docker container run: "docker container run --publish 80:80 --detach --name ngnix nginx : Pull nginx image if not exist, create a container, bind ports, name it, and run it"
+    docker container ps: "docker container ps || ls : Show running containers"
+    docker container ps -a: "docker container ps || ls -a : Show running and stopped containers"
+    docker container stop: "docker container stop 'ContainerName' || 'Id' : Stop a container by name or by Id"
+    docker container rm: "docker container rm 'ContainerName' || 'Id' || --force : Remove a container by name || force remove a running container"
+    docker container logs: "docker container logs 'ContainerName' : Show logs and info about a specific container"
+    docker container create: "docker container create 'ImageName' || --name 'GivenName' 'ImageName': Create a container but not run it"
+    docker container top: "docker container top 'ContainerName': Process list in one container"
+    docker container inspect: "docker container inspect 'ContainerName' : All details of one container"
+    docker container stats: "docker container stats : Performance stats of all running containers"
+    docker container help: "docker container --help : For more useful subcommands"
+    docker system prune: "docker system prune : Delete all { stopped Containers, networks not used by at least one container, dangling images, dangling build cache }"
+
+shell_inside_container:
+  commands:
+    docker container run -it --name 'ContainerName' 'Image' 'shell' : "Start a new container interactively /
+      -i to keep session open to receive terminal input /
+      -t simulates a real terminal like ssh does"
+    docker container start -ai: "Start an existing container interactively / attached with stdin, out, err"
+    docker container exec -it 'ContainerName' 'shell': "Run additional command in an existing and running container"
+    
+docker_networks_container:
+  overview:
+    - "Each container connected to a private virtual network 'bridge'"
+    - "Each virtual network routes through NAT firewall on host IP"
+    - "All containers on a virtual network can talk to each other without paths"
+    - "The best practice is to create a new virtual network for each app, e.g., network 'web_app' for MySQL and PHP/Apache containers"
+    - "Batteries included, but removable"
+    - "Attach containers to more than one virtual network (or none)"
+    - "Skip the virtual networks and use host IP (--net=host)"
+  
+  commands:
+    docker container port: "Which port is forwarding traffic to that container from host to container"
+    docker network ls: "Show networks"
+      bridge: "Default docker virtual network, which is NAT'ed behind the host IP and which the container attached to"
+      host: "A special network that skips the virtual networking of Docker and attaches the container directly to the host interface"
+    docker network inspect: "docker network inspect 'NetworkName or Id': Inspect a network"
+      --format: "inspect a container, --format '{{NetworkSettings.IPAddress}}' 'ContainerName' : Get the container IP address"
+    docker network create --driver: "Create a network to attach containers to"
+      --driver: "Network driver built on a 3rd party extension that gives you virtual network features"
+    docker network connect 'NetworkName | Id' 'ContainerName': "docker network connect : Attach a network to container with dynamically create a NIC in a container on an existing virtual network"
+    docker network disconnect 'NetworkName | Id' 'ContainerName': "docker network disconnect : Detach a network from container"
+    docker container run -d --name 'ContainerName' --network 'NetworkName' 'Image' : "create a new container add it to a network and run it"
+    
+    DNS naming:
+      - "Staic IP's and using IP's for talking to containers is an anti-oattern. so do your best to avoid it"
+      - "because the IP addresses may change depanding on the order when we start a container again /
+        so we depand on the container name instead that what DNS naming does"
+      - "it best to create a new virtual network because the default bridge network doesn't have a builtin DNS server"
+      - "but we must use bridge network we can use --link what that does is creat a link between containers but not /
+        prefered always create a costum network"
+      - "Docker daemon has a built-in DNS server that containers use by default"
+    notes:
+      - "create your apps so frontend/backend sit on same docker network"
+      - "their inter-communacation never leaves host"
+      - "all externally exposed ports closed by default"
+      - "you must manually expose ports via -p, which is better default security"
+
+image_vs_container:
+  overview:
+    - "An Image is the application we want to run"
+    - "A Container is an instance of that image running as a process"
+    - "You can have many containers running off the same image"
+  commands:
+    docker_images: "docker images || image ls : Show all created images"
